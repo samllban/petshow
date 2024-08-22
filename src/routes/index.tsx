@@ -1,11 +1,14 @@
-import { Route, Routes } from "react-router-dom";
-import Store from '../pages/Home'; // Importe o componente Store corretamente
+import { Route, Switch } from "react-router-dom";
+import  FeaturedProducts  from "../components/FeaturedProducts"
+import  RegistrationForm  from "../components/RegistrationForm";
+//import Store from '../pages/Home'; // Importe o componente Store corretamente
 
 const AppRoutes: React.FC = () => {
     return (
-        <Routes>
-            <Route path="/" element={<Store />} />
-        </Routes>
+        <Switch>
+            <Route exact path='/' component={FeaturedProducts} />
+            <Route exact path='/registrationForm' component={RegistrationForm} />
+        </Switch>
     );
 }
 

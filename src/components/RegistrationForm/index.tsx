@@ -1,6 +1,7 @@
 import React from 'react';
 import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
 import * as yup from 'yup';
+import Header from '../Header/Header';
 
 interface Variation {
     barcode?: string;
@@ -88,98 +89,118 @@ const RegistrationForm: React.FC = () => {
     };
 
     return (
-        <Formik
-            initialValues={initialValues}
-            onSubmit={handleSubmit}
-            validationSchema={validationSchema}
-        >
-            {({ values, setFieldValue }) => (
-                <Form>
-                    <div>
-                        <Field name="productName" placeholder="Product Name" />
-                        <ErrorMessage name="productName" component="span" className="form-error" />
-                    </div>
-                    <div>
-                        <Field name="description" placeholder="Product Description" />
-                        <ErrorMessage name="description" component="span" className="form-error" />
-                    </div>
-                    <div>
-                        <Field name="supplier" placeholder="Supplier Name" />
-                        <ErrorMessage name="supplier" component="span" className="form-error" />
-                    </div>
+        <>
+            <Header />
+            <Formik
+                initialValues={initialValues}
+                onSubmit={handleSubmit}
+                validationSchema={validationSchema}
+            >
+                {({ values, setFieldValue }) => (
+                    <div className="flex justify-center items-center h-screen bg-purple-700">
+                        <div className="container w-4/5 h-4/5 flex shadow-lg">
+                            <div className="">
 
-                    <FieldArray name="variations">
-                        {({ push, remove }) => (
-                            <div>
-                                <h3>Variations</h3>
-                                {values.variations.map((_, index) => (
-                                    <div key={index}>
-                                        <Field name={`variations[${index}].variationName`} placeholder="Variation Name" />
-                                        <ErrorMessage name={`variations[${index}].variationName`} component="span" className="form-error" />
-                                        <Field name={`variations[${index}].barcode`} placeholder="Barcode" />
-                                        <Field name={`variations[${index}].sku`} placeholder="SKU" />
-                                        <Field name={`variations[${index}].description`} placeholder="Description" />
-                                        <Field name={`variations[${index}].stock`} type="number" placeholder="Stock Quantity" />
-                                        <ErrorMessage name={`variations[${index}].stock`} component="span" className="form-error" />
-                                        <Field name={`variations[${index}].price`} type="number" placeholder="Price" />
-                                        <ErrorMessage name={`variations[${index}].price`} component="span" className="form-error" />
-                                        <div>
-                                            <label>
-                                                <Field type="checkbox" name={`variations[${index}].inPromotion`} />
-                                                In promotion?
-                                            </label>
-                                            {values.variations[index].inPromotion && (
-                                                <div>
-                                                    <Field name={`variations[${index}].promotion.newPrice`} type="number" placeholder="New Price" />
-                                                    <Field name={`variations[${index}].promotion.startDate`} type="date" />
-                                                    <Field name={`variations[${index}].promotion.endDate`} type="date" />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <button type="button" onClick={() => remove(index)}>Remove Variation</button>
+                                <Form>
+                                    <div className="form-header mb-12 flex justify-between w-full">
+                                        <h1 className="text-xl font-semibold">Product Registration</h1>
                                     </div>
-                                ))}
-                                <button type="button" onClick={() => push({
-                                    barcode: '',
-                                    sku: '',
-                                    variationName: '',
-                                    description: '',
-                                    stock: 0,
-                                    price: 0,
-                                    inPromotion: false,
-                                    promotion: {
-                                        newPrice: 0,
-                                        startDate: '',
-                                        endDate: ''
-                                    }
-                                })}>
-                                    + Add Variation
-                                </button>
-                            </div>
-                        )}
-                    </FieldArray>
+                                    <div className="input-group flex flex-wrap justify-between py-4 w-full">
+                                        <div className="input-box flex flex-col mb-4 w-full">
+                                            <Field name="productName" placeholder="Product Name" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                            <ErrorMessage name="productName" component="span" className="form-error text-red-500" />
+                                        </div>
+                                        <div className="input-box flex flex-col mb-4 w-full">
+                                            <Field name="description" placeholder="Product Description" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                            <ErrorMessage name="description" component="span" className="form-error text-red-500" />
+                                        </div>
+                                        <div className="input-box flex flex-col mb-4 w-full">
+                                            <Field name="supplier" placeholder="Supplier Name" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                            <ErrorMessage name="supplier" component="span" className="form-error text-red-500" />
+                                        </div>
+                                    </div>
 
-                    <div>
-                        <input
-                            type="file"
-                            multiple
-                            onChange={(event) => {
-                                setFieldValue("photos", event.currentTarget.files);
-                            }}
-                        />
-                        <ErrorMessage name="photos" component="span" className="form-error" />
+                                    <FieldArray name="variations">
+                                        {({ push, remove }) => (
+                                            <div>
+                                                <h3 className="text-lg font-semibold">Variations</h3>
+                                                {values.variations.map((_, index) => (
+                                                    <div key={index} className="input-box flex flex-col mb-4 w-full">
+                                                        <Field name={`variations[${index}].variationName`} placeholder="Variation Name" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                                        <ErrorMessage name={`variations[${index}].variationName`} component="span" className="form-error text-red-500" />
+                                                        <Field name={`variations[${index}].barcode`} placeholder="Barcode" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                                        <Field name={`variations[${index}].sku`} placeholder="SKU" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                                        <Field name={`variations[${index}].description`} placeholder="Description" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                                        <Field name={`variations[${index}].stock`} type="number" placeholder="Stock Quantity" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                                        <ErrorMessage name={`variations[${index}].stock`} component="span" className="form-error text-red-500" />
+                                                        <Field name={`variations[${index}].price`} type="number" placeholder="Price" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                                        <ErrorMessage name={`variations[${index}].price`} component="span" className="form-error text-red-500" />
+                                                        <div className="flex items-center">
+                                                            <label className="mr-2">
+                                                                <Field type="checkbox" name={`variations[${index}].inPromotion`} />
+                                                                In promotion?
+                                                            </label>
+                                                            {values.variations[index].inPromotion && (
+                                                                <div className="input-box flex flex-col mb-4 w-full">
+                                                                    <Field name={`variations[${index}].promotion.newPrice`} type="number" placeholder="New Price" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                                                    <Field name={`variations[${index}].promotion.startDate`} type="date" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                                                    <Field name={`variations[${index}].promotion.endDate`} type="date" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <button type="button" onClick={() => remove(index)} className="mb-2 p-2 bg-red-500 text-white rounded-md shadow-sm hover:bg-red-600">Remove Variation</button>
+                                                    </div>
+                                                ))}
+                                                <button type="button" onClick={() => push({
+                                                    barcode: '',
+                                                    sku: '',
+                                                    variationName: '',
+                                                    description: '',
+                                                    stock: 0,
+                                                    price: 0,
+                                                    inPromotion: false,
+                                                    promotion: {
+                                                        newPrice: 0,
+                                                        startDate: '',
+                                                        endDate: ''
+                                                    }
+                                                })} className="mb-4 p-2 bg-indigo-500 text-white rounded-md shadow-sm hover:bg-indigo-600">
+                                                    + Add Variation
+                                                </button>
+                                            </div>
+                                        )}
+                                    </FieldArray>
+
+                                    <div className="input-box flex flex-col mb-4 w-full">
+                                        <input
+                                            type="file"
+                                            multiple
+                                            onChange={(event) => {
+                                                setFieldValue("photos", event.currentTarget.files);
+                                            }}
+                                            className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        />
+                                        <ErrorMessage name="photos" component="span" className="form-error text-red-500" />
+                                    </div>
+                                    <div className="input-box flex flex-col mb-4 w-full">
+                                        <label className="flex items-center">
+                                            <Field type="radio" name="mainPhoto" value="1" className="mr-2" />
+                                            Set as main photo
+                                        </label>
+                                        <ErrorMessage name="mainPhoto" component="span" className="form-error text-red-500" />
+                                    </div>
+                                    <button type="submit" className="p-2 bg-indigo-500 text-white rounded-md shadow-sm hover:bg-indigo-600">Save</button>
+                                </Form>
+                            </div>
+
+
+                        </div>
+
                     </div>
-                    <div>
-                        <label>
-                            <Field type="radio" name="mainPhoto" value="1" />
-                            Set as main photo
-                        </label>
-                        <ErrorMessage name="mainPhoto" component="span" className="form-error" />
-                    </div>
-                    <button type="submit">Save</button>
-                </Form>
-            )}
-        </Formik>
+
+                )}
+            </Formik>
+        </>
     );
 };
 
