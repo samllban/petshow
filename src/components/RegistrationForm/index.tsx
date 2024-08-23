@@ -1,7 +1,12 @@
 import React from 'react';
-import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
+import { Formik, Form, Field, FieldArray, ErrorMessage, FormikHelpers } from 'formik';
 import * as yup from 'yup';
 import Header from '../Header/Header';
+import { fetchProductByBarcode } from '../../api/cosmo';
+import axios from 'axios';
+//import { saveProduct } from '../../api/apiServerce';
+import InputMask from "react-input-mask";
+
 
 interface Variation {
     barcode?: string;
@@ -27,6 +32,11 @@ interface FormValues {
     mainPhoto: string;
 }
 
+const parsePrice = (value:string): number => {
+    const numericValue = value.replace(/[^0-9.,]/g, '')
+    return parseFloat(numericValue.replace(',','.'))
+}
+
 const initialValues: FormValues = {
     productName: '',
     description: '',
@@ -47,6 +57,13 @@ const initialValues: FormValues = {
     }],
     photos: [],
     mainPhoto: ''
+};
+
+type CustomFieldProps = {
+    value: string | number;
+    name: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
 };
 
 const validationSchema = yup.object().shape({
@@ -83,9 +100,52 @@ const validationSchema = yup.object().shape({
 });
 
 const RegistrationForm: React.FC = () => {
-    const handleSubmit = (values: FormValues) => {
-        console.log('Form submitted:', values);
-        // Logic to send data to the server, try doing it later
+
+    const handleBarcodeChange = async (
+        event: React.ChangeEvent<HTMLInputElement>,
+        index: number,
+        setFieldValue: (field: string, value: string | number | boolean | File[] | null, shouldValidate?: boolean) => void,
+    ) => {
+        const barcode = event.target.value;
+        setFieldValue(`variations[${index}].barcode`, barcode);
+        if (barcode.length >= 8) {
+            const data = await fetchProductByBarcode(barcode);
+            if (data) {
+                setFieldValue(`variations[${index}].variationName`, data.description)
+                setFieldValue(`variations[${index}].price`, data.price || 0);
+            }
+        }
+    };
+
+
+    const onSubmit = async (values: FormValues, { setSubmitting }: FormikHelpers<FormValues>) => {
+        const formData = new FormData();
+
+        formData.append('productName', values.productName);
+        formData.append('description', values.description);
+        formData.append('supplier', values.supplier);
+        formData.append('variations', JSON.stringify(values.variations));
+        formData.append('mainPhoto', values.mainPhoto);
+
+        // Anexando os arquivos de fotos
+        for (let i = 0; i < values.photos.length; i++) {
+            formData.append('photos', values.photos[i]);
+        }
+
+        try {
+            const response = await axios.post('http://localhost:5000/save-product', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            console.log('Product saved:', response.data);
+
+        } catch (error) {
+            console.error('Error saving product:', error);
+        }
+
+        setSubmitting(false);
     };
 
     return (
@@ -93,14 +153,13 @@ const RegistrationForm: React.FC = () => {
             <Header />
             <Formik
                 initialValues={initialValues}
-                onSubmit={handleSubmit}
+                onSubmit={onSubmit}
                 validationSchema={validationSchema}
             >
                 {({ values, setFieldValue }) => (
                     <div className="flex justify-center items-center h-screen bg-purple-700">
                         <div className="container w-4/5 h-4/5 flex shadow-lg">
-                            <div className="">
-
+                            <div>
                                 <Form>
                                     <div className="form-header mb-12 flex justify-between w-full">
                                         <h1 className="text-xl font-semibold">Product Registration</h1>
@@ -119,7 +178,6 @@ const RegistrationForm: React.FC = () => {
                                             <ErrorMessage name="supplier" component="span" className="form-error text-red-500" />
                                         </div>
                                     </div>
-
                                     <FieldArray name="variations">
                                         {({ push, remove }) => (
                                             <div>
@@ -128,12 +186,33 @@ const RegistrationForm: React.FC = () => {
                                                     <div key={index} className="input-box flex flex-col mb-4 w-full">
                                                         <Field name={`variations[${index}].variationName`} placeholder="Variation Name" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                                                         <ErrorMessage name={`variations[${index}].variationName`} component="span" className="form-error text-red-500" />
-                                                        <Field name={`variations[${index}].barcode`} placeholder="Barcode" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+
+                                                        <Field
+                                                            name={`variations[${index}].barcode`}
+                                                            placeholder="Barcode"
+                                                            className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                            onChange={async (event: React.ChangeEvent<HTMLInputElement>) => {
+                                                                await handleBarcodeChange(event, index, setFieldValue);
+                                                            }}
+                                                        />
                                                         <Field name={`variations[${index}].sku`} placeholder="SKU" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                                                         <Field name={`variations[${index}].description`} placeholder="Description" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                                                         <Field name={`variations[${index}].stock`} type="number" placeholder="Stock Quantity" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                                                         <ErrorMessage name={`variations[${index}].stock`} component="span" className="form-error text-red-500" />
-                                                        <Field name={`variations[${index}].price`} type="number" placeholder="Price" className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+
+                                                        <Field name={`variations[${index}].price`}>
+                                                            {({ field }: {field: CustomFieldProps}) => (
+                                                                <InputMask
+                                                                    {...field}
+                                                                    mask="$999,999.99"
+                                                                    className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                                    onChange={(e) => {
+                                                                        const parsedValue = parsePrice(e.target.value);
+                                                                        setFieldValue(`variations[${index}].price`, parsedValue)
+                                                                    }}
+                                                                />
+                                                            )}
+                                                        </Field>
                                                         <ErrorMessage name={`variations[${index}].price`} component="span" className="form-error text-red-500" />
                                                         <div className="flex items-center">
                                                             <label className="mr-2">
@@ -164,19 +243,24 @@ const RegistrationForm: React.FC = () => {
                                                         startDate: '',
                                                         endDate: ''
                                                     }
-                                                })} className="mb-4 p-2 bg-indigo-500 text-white rounded-md shadow-sm hover:bg-indigo-600">
+                                                })} className="mb-4 p-2 bg-indigo-500 text-white rounded-md shadow-sm hover:bg-indigo-600"
+
+                                                >
                                                     + Add Variation
                                                 </button>
                                             </div>
                                         )}
                                     </FieldArray>
-
                                     <div className="input-box flex flex-col mb-4 w-full">
                                         <input
                                             type="file"
                                             multiple
                                             onChange={(event) => {
-                                                setFieldValue("photos", event.currentTarget.files);
+                                                const files = event.currentTarget.files;
+                                                if (files) {
+                                                    const fileArray = Array.from(files)
+                                                    setFieldValue("photos", fileArray)
+                                                }
                                             }}
                                             className="mb-2 p-3 border-none rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                         />
@@ -189,15 +273,16 @@ const RegistrationForm: React.FC = () => {
                                         </label>
                                         <ErrorMessage name="mainPhoto" component="span" className="form-error text-red-500" />
                                     </div>
-                                    <button type="submit" className="p-2 bg-indigo-500 text-white rounded-md shadow-sm hover:bg-indigo-600">Save</button>
+                                    <button
+                                        type="submit"
+                                        className="p-2 bg-indigo-500 text-white rounded-md shadow-sm hover:bg-indigo-600"
+                                    >
+                                        Save
+                                    </button>
                                 </Form>
                             </div>
-
-
                         </div>
-
                     </div>
-
                 )}
             </Formik>
         </>
